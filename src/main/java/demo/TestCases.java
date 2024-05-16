@@ -1,10 +1,12 @@
 package demo;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -12,11 +14,17 @@ import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.logging.LogType;
 import org.openqa.selenium.logging.LoggingPreferences;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import net.bytebuddy.asm.Advice.Enter;
 
 
 public class TestCases {
@@ -25,7 +33,7 @@ public class TestCases {
     {
         System.out.println("Constructor: TestCases");
 
-        WebDriverManager.chromedriver().browserVersion("123.0.6312.59").setup();
+        WebDriverManager.chromedriver().browserVersion("125.0.6422.61").setup();
         ChromeOptions options = new ChromeOptions();
         LoggingPreferences logs = new LoggingPreferences();
 
@@ -40,225 +48,255 @@ public class TestCases {
         System.setProperty(ChromeDriverService.CHROME_DRIVER_LOG_PROPERTY, "chromedriver.log");
 
         driver = new ChromeDriver(options);
+        
 
     }
 
     public void endTest()
     {
         System.out.println("End Test: TestCases");
-        //driver.close();
+        driver.close();
         driver.quit();
 
     }
 
+    public void testCase01()
+    {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        JavascriptExecutor js = (JavascriptExecutor)driver;
+        System.out.println("Automating Google Form");
+        
+        try {
+            //Open the google form URL and verify 
+            navigateTo(driver,"https://forms.gle/wjPkzeSEk1CM7KgGA");
+            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("(//input[@type='text'])[1]")));
+            
+            //Fill the name in Name text box
+            text(driver, By.xpath("(//input[@type='text'])[1]"), "Sumeet");
+
+            //Why do you want to practice automation with Epoch time
+            text(driver, By.xpath("//textarea[@class='KHxj8b tL9Q4c']"), "I want to be the best QA Engineer! "+epochTime());
+            
+            //Enter your Automation Testing experience in the next radio button
+            radioButton(driver, By.xpath("//span[@class='aDTYNe snByac OvPDhc OIC90c']"));
+            js.executeScript("window.scrollBy(0,700);");
+            
+            //Which of the following have you learned in Crio.Do for Automation Testing?
+            checkBox(driver, By.xpath("//span[@class='aDTYNe snByac n5vBHf OIC90c']"));
+
+            //Provide how you would like to be addressed in the next dropdown
+            dropDown(driver);
+         
+            //Select Date before 7 days
+            setDate(driver, By.xpath("//input[@type='date']"));
+            
+            //Add Time
+            setTime(driver);
+
+            //New URL
+            newURL(driver);
+
+            //Submit Form
+            submitForm(driver);
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+            System.out.println("Failure!");
+            return;
+        }
+    }
+
     
-    public  void testCase01(){
-        System.out.println("Start Test case: testCase01");
-        System.out.println("Verify that Google Form URL is Open");
-        driver.get("https://forms.gle/wjPkzeSEk1CM7KgGA");
-
-        String url = driver.getCurrentUrl();
-        if(url.contains("forms"))
-        {
-            System.out.println(url);
-            System.out.println("end Test case: testCase01");
+   
+    private static void navigateTo(ChromeDriver driver,String url) throws Exception
+    {
+       
+        try {
+            if(!(driver.getCurrentUrl().equals(url)))
+            {
+                driver.get(url);
+                System.out.println("Google form URL:"+url);
+                
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+            System.out.println("Exception occured while navigating"+e.getMessage());
         }
-        else
-        {
-            System.out.println("Does not contain URL");
-            System.out.println("end Test case: testCase01");
+    }
+
+    private static void text(ChromeDriver driver,By selector,String texttosend)
+    {
+        try {
+            WebElement textbox = driver.findElement(selector);
+            //textbox.click();
+            textbox.sendKeys(texttosend);
+            System.out.println("Text send successfully to Input box");
+        } catch (Exception e) {
+            // TODO: handle exception
+            System.out.println("Exception occured while Adding text to Input field"+e.getMessage());
         }
+    }
+
+    private static String epochTime()
+    {
+        long epoch = System.currentTimeMillis() / 1000;
         
+        return String.valueOf(epoch);
     }
 
-    public void testCase02() throws InterruptedException
+    private static void radioButton(ChromeDriver driver,By selector)
     {
-        System.out.println("Start Test case: testCase02");
-        System.out.println("Verify Fill in your name in the 1st text box");
+        try {
+           List<WebElement> Experience = driver.findElements(selector);
 
-        WebElement firstname = driver.findElement(By.xpath("(//input[@type='text'])[1]"));
-        Thread.sleep(2000);
-        firstname.click();
-        firstname.sendKeys("Sumeet");
-
-        System.out.println("end Test case: testCase02");
+           for (WebElement element : Experience) 
+           {
+                String year = element.getText();
+                if(year.contains("> 10"))
+                {
+                    element.click();
+                    System.out.println("Clicked on Radio Button Successfully");
+                }
+           }
+        } catch (Exception e) {
+            // TODO: handle exception
+            System.out.println("Exception occured while clicking on Radio button"+e.getMessage());
+        }
     }
 
-    public void testCase03() throws InterruptedException
+    private static void checkBox(ChromeDriver driver,By selector)
     {
-        System.out.println("Start Test case: testCase03");
-        System.out.println("Verify Why are you practicing Automation");
+        try {
+            List<WebElement> crioSubjectList = driver.findElements(selector);
+            
+            for (WebElement subject : crioSubjectList) 
+            {
+                String subjectLearned = subject.getText();
 
-        WebElement auto = driver.findElement(By.xpath("//textarea[@class='KHxj8b tL9Q4c']"));
-        Thread.sleep(2000);
-        auto.click();
-        auto.sendKeys("I want to be the best QA Engineer! 1710572021");
-
-        System.out.println("end Test case: testCase03");
+                if(subjectLearned.contains("Java") || subjectLearned.contains("Selenium") || subjectLearned.contains("TestNG"))
+                {
+                    subject.click();
+                    System.out.println("Checked successfully"+subjectLearned);
+                }
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+            System.out.println("Exception occured while selecting checkbox"+e.getMessage());
+        }
     }
-
-    public void testCase04() throws InterruptedException
+    private static void dropDown(ChromeDriver driver) throws InterruptedException
     {
-        System.out.println("Start Test case: testCase04");
-        System.out.println("Verify Enter your Automation Testing experience in the next radio button");
-
-        WebElement exp = driver.findElement(By.xpath("//span[text()='3 - 5']"));
-        Thread.sleep(2000);
-        exp.click();
-
-        System.out.println("end Test case: testCase04");
-
-    }
-
-    public void testCase05() throws InterruptedException
-    {
-        System.out.println("Start Test case: testCase05");
-        System.out.println("Verify Which of the following have you learned in Crio.Do for Automation Testing?");
-
-        WebElement java = driver.findElement(By.xpath("//span[text()='Java']"));
-        Thread.sleep(2000);
-        java.click();
-
-        WebElement selenium = driver.findElement(By.xpath("//span[text()='Selenium']"));
-        Thread.sleep(2000);
-        selenium.click();
-
-        Thread.sleep(3000);
-        WebElement testng = driver.findElement(By.xpath("//label[@for='i39']"));
-        
-        testng.click();
-
-        System.out.println("end Test case: testCase05");
-
-    }
-    public void testCase06() throws InterruptedException
-    {
-        System.out.println("Start Test case: testCase06");
-        System.out.println("Verify Provide how you would like to be addressed in the next dropdown");
-
-        Thread.sleep(4000);
-        // Select title = new Select(driver.findElement(By.xpath("")));
-        // title.selectByVisibleText("Mr");
-
-        WebElement dropdown = driver.findElement(By.xpath("//div[@class='MocG8c HZ3kWc mhLiyf LMgvRb KKjvXb DEh1R']"));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        try {
+            WebElement dropdown = driver.findElement(By.xpath("(//div[@jsname='LgbsSe']//div/div[1]/span)[1]"));
         dropdown.click();
 
-        Thread.sleep(2000);
-        WebElement title = driver.findElement(By.xpath("(//span[text()='Mr'])[2]"));
-        title.click();
-        System.out.println("end Test case: testCase06");
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='OA0qNb ncFHed QXL7Te']/div")));
+       List<WebElement> clickAddress = driver.findElements(By.xpath("//div[@class='OA0qNb ncFHed QXL7Te']/div"));
 
-
-    }
-
-    public void testCase07() throws InterruptedException
-    {
-        System.out.println("Start Test case: testCase07");
-        System.out.println("Verify What was the date 7 days ago?");
-
-        LocalDate currentDate = LocalDate.now();
-        System.out.println(currentDate);
-
-        LocalDate dateMinus7 = currentDate.minusDays(7);
-        System.out.println(dateMinus7);
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        String formattedDate = dateMinus7.format(formatter);
-        System.out.println(formattedDate);
-
-        int day = dateMinus7.getDayOfMonth();
-        int month = dateMinus7.getMonthValue();
-        int year = dateMinus7.getYear();
-
-
-        Thread.sleep(3000);
-        WebElement date = driver.findElement(By.xpath("//input[@type='date']"));
-        date.click();
-        date.sendKeys(Keys.ARROW_LEFT); 
-        date.sendKeys(Keys.ARROW_LEFT);
-        date.sendKeys(String.valueOf(day));
-        date.sendKeys(Keys.ARROW_RIGHT);
-        Thread.sleep(2000);
-        date.sendKeys(String.valueOf(month));
-        date.sendKeys(Keys.ARROW_RIGHT);
-        Thread.sleep(2000);
-        date.sendKeys(String.valueOf(year));
-        Thread.sleep(5000);
-        System.out.println("end Test case: testCase07");
-    }
-
-    public void testCase08()throws InterruptedException
-    {
-        System.out.println("Start Test case: testCase08");
-        System.out.println("Verify What is the time right now?");
-
-        LocalTime currentTime = LocalTime.now(); 
-        int hour = currentTime.getHour(); 
-        int twelveHourFormat = (hour % 12 == 0) ? 12 : hour % 12;
-        int minutes = currentTime.getMinute(); 
-
-       
-        WebElement timeField = driver.findElement(By.xpath("(//input[@type='text'])[2]")); 
-        timeField.click(); 
-        Thread.sleep(1000); 
-        timeField.sendKeys(String.valueOf(twelveHourFormat)); 
-        timeField.sendKeys(Keys.TAB);
-
-        
-        WebElement timeField1 = driver.findElement(By.xpath("(//input[@type='text'])[3]"));
-        timeField1.click(); 
-        Thread.sleep(1000); 
-        timeField1.sendKeys(String.valueOf(minutes));
-        System.out.println("end Test case: testCase08");
-    }
-
-    public void testCase09() throws InterruptedException
-    {
-        System.out.println("Start Test case: testCase09");
-        System.out.println("Verify Change the URL of the tab (amazon.in) and you will find the pop up as follows. Click on cancel.");
-
-        driver.get("https://www.amazon.in/");
-
-        Thread.sleep(5000);
-
-            try {
-                Alert alert = driver.switchTo().alert(); 
-                alert.dismiss(); 
-            } catch (Exception ex) {
-                System.out.println("No pop-up appeared.");
+       for (WebElement address : clickAddress) 
+       {
+            String selectAddress = address.getText();
+            if(selectAddress.contains("Mr"))
+            {
+                address.click();
+                System.out.println("Clicked on Mr Successfully");
+                break;
             }
-            Thread.sleep(3000);
-            System.out.println("end Test case: testCase09");
-    }
-
-    public void testCase10()throws InterruptedException
-    {
-        System.out.println("Start Test case: testCase10");
-        System.out.println("Verify Submit the form");
-
-        WebElement submitbtn = driver.findElement(By.xpath("//span[text()='Submit']"));
-        submitbtn.click();
-
-        Thread.sleep(3000);
-
-        WebElement thankstext = driver.findElement(By.xpath("//div[text()='Thanks for your response, Automation Wizard!']"));
-
-        String textsubmission = thankstext.getText();
-
-        Thread.sleep(2000);
-        if(textsubmission.contains("Thanks"))
-        {
-            System.out.println(textsubmission);
-            System.out.println("end Test case: testCase10");
+       }
+        } catch (Exception e) {
+            // TODO: handle exception
+            System.out.println("Exception occured while selecting Address(Mr)"+e.getMessage());
         }
-        else
-        {
-            System.out.println("Message does not contain");
-            System.out.println("end Test case: testCase10");
-        }
+
         
     }
+    private static void setDate(ChromeDriver driver,By selector) throws InterruptedException
+    {
+        
+        try 
+        {
+            WebElement date = driver.findElement(selector);
+            LocalDate currentDate = LocalDate.now();
+            LocalDate before_7days = currentDate.minusDays(7);
+            DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            String final_Date_1 = myFormatObj.format(before_7days);
+            System.out.println(final_Date_1);
+            
+            Thread.sleep(2000);
+            date.sendKeys(final_Date_1);
+            
+        } catch (Exception e) {
+            // TODO: handle exception
+            System.out.println("Exception occured while Adding Date"+e.getMessage());
+        }
+       
+    }
 
+    private static void setTime(ChromeDriver driver)
+    {
+        try 
+        {
+            LocalTime currentTime = LocalTime.now(); 
+
+            int hour = currentTime.getHour(); 
+            int twelveHourFormat = (hour % 12 == 0) ? 12 : hour % 12;
+            int minutes = currentTime.getMinute(); 
+
+            WebElement timeField = driver.findElement(By.xpath("(//input[@type='text'])[2]")); 
+            timeField.click(); 
+            Thread.sleep(1000); 
+            timeField.sendKeys(String.valueOf(twelveHourFormat)); 
+            timeField.sendKeys(Keys.TAB);
+
+        
+            WebElement timeField1 = driver.findElement(By.xpath("(//input[@type='text'])[3]"));
+            timeField1.click(); 
+            Thread.sleep(1000); 
+            timeField1.sendKeys(String.valueOf(minutes));
+
+        } catch (Exception e) {
+            // TODO: handle exception
+            System.out.println("Exception occured while Adding Time"+e.getMessage());
+        }
+    }
+
+    private static void newURL(ChromeDriver driver)
+    {
+       
+        try 
+        {
+            driver.get("https://www.amazon.in/");
+            Thread.sleep(2000);
+            Alert alert = driver.switchTo().alert();
+            alert.dismiss();
+        } catch (Exception e) {
+            // TODO: handle exception
+            System.out.println("Exception occured while opening New URL"+e.getMessage());
+        }
+
+    }
+
+    private static void submitForm(ChromeDriver driver)
+    {
+        try 
+        {
+            WebElement subbtn = driver.findElement(By.xpath("//span[text()='Submit']"));
+            subbtn.click();
+            
+            WebElement thankstext = driver.findElement(By.xpath("//div[@class='vHW8K']"));
+
+            String textMatch = thankstext.getText();
+            if(textMatch.contains("Thanks"))
+            {
+                System.out.println(textMatch);
+                System.out.println("Automated Succesfully Google Form");
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+            System.out.println("Exception occured while submitting google form"+e.getMessage());
+        }
+    }
 
 
 }
